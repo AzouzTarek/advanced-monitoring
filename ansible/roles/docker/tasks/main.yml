@@ -1,25 +1,22 @@
 ---
-- name: Installer dépendances
+- name: Supprimer les anciennes versions de Docker et containerd
   apt:
-    name: [apt-transport-https, ca-certificates, curl, software-properties-common, gnupg]
+    name: [docker, docker-engine, docker.io, containerd, runc, containerd.io]
+    state: absent
+    purge: yes
+
+- name: Installer les dépendances nécessaires
+  apt:
+    name: [apt-transport-https, ca-certificates, curl, software-properties-common, gnupg, lsb-release]
     state: present
     update_cache: yes
 
-- name: Ajouter la clé GPG officielle de Docker
-  apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Ajouter le dépôt Docker pour Ubuntu 24.04
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
-    state: present
-
-- name: Installer Docker Engine et containerd
-  apt:
-    name: [docker-ce, docker-ce-cli, containerd.io]
-    state: present
-    update_cache: yes
+- name: Installer Docker via le script officiel
+  shell: |
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+  args:
+    creates: /usr/bin/docker  # évite de réexécuter si déjà installé
 
 - name: Installer Docker Compose Plugin
   apt:
