@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    docker_compose_version: "v2.27.0"
+
+  roles:
+    - docker
+    - monitoring

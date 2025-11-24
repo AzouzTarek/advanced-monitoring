@@ -1,0 +1,19 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'azouztarek47@gmail.com'        # expéditeur
+  smtp_auth_username: 'azouztarek47@gmail.com'
+  smtp_auth_password: 'kwbj ftet lghp cdxo'  # 🔒 pas ton mot de passe normal !
+  smtp_require_tls: true
+
+route:
+  receiver: 'email-alert'
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+
+receivers:
+  - name: 'email-alert'
+    email_configs:
+      - to: 'titoazouz47@gmail.com'
+        send_resolved: true
+

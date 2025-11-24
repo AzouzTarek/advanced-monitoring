@@ -1,0 +1,13 @@
+---
+- name: Copier les fichiers du projet advanced-monitoring
+  copy:
+    src: ../../advanced-monitoring/
+    dest: /opt/advanced-monitoring/
+    owner: vagrant
+    mode: '0755'
+
+- name: Lancer la stack Docker
+  shell: |
+    cd /opt/advanced-monitoring
+    docker-compose up -d
+
