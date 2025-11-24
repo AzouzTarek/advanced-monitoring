@@ -1,7 +1,7 @@
 ---
 - name: Installer dépendances
   apt:
-    name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+    name: [apt-transport-https, ca-certificates, curl, software-properties-common, gnupg]
     state: present
     update_cache: yes
 
@@ -10,21 +10,21 @@
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
 
-- name: Ajouter le dépôt Docker
+- name: Ajouter le dépôt Docker pour Ubuntu 24.04
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
     state: present
 
-- name: Installer Docker Engine
+- name: Installer Docker Engine et containerd
   apt:
     name: [docker-ce, docker-ce-cli, containerd.io]
     state: present
+    update_cache: yes
 
-- name: Installer Docker Compose
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-x86_64"
-    dest: /usr/local/bin/docker-compose
-    mode: '0755'
+- name: Installer Docker Compose Plugin
+  apt:
+    name: docker-compose-plugin
+    state: present
 
 - name: Démarrer et activer Docker
   service:
