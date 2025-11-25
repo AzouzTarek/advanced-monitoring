@@ -14,7 +14,6 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      # (Facultatif) Vérifier les versions préinstallées
       - name: Check Docker & Compose
         run: |
           docker --version
@@ -26,12 +25,9 @@ jobs:
       - name: Test de l'application Flask
         run: |
           docker run -d --name flask-monitor -p 5000:5000 flask-monitoring-app
-          # attendre que l'appli démarre
           sleep 5
           bash test_app.sh
-          # nettoyer
-          docker logs flask-monitor || true
-          docker rm -f flask-monitor || true
+          docker rm -f flask-monitor
 
   deploy:
     runs-on: ubuntu-latest
@@ -40,4 +36,8 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-      # Ajoute ici tes étapes de déploiement (scp, ssh, kubectl, etc.)
+
+      - name: Déploiement de la stack Monitoring
+        run: |
+          cd advanced-monitoring
+          docker compose up -d
