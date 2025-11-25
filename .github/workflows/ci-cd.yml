@@ -1,3 +1,4 @@
+
 name: CI-CD Monitoring
 
 on:
@@ -13,19 +14,24 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
-      - name: Installation de Docker
+      # (Facultatif) Vérifier les versions préinstallées
+      - name: Check Docker & Compose
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io docker-compose
+          docker --version
+          docker compose version
 
       - name: Build de l'image Flask
         run: docker build -t flask-monitoring-app .
 
       - name: Test de l'application Flask
         run: |
-          docker run -d -p 5000:5000 flask-monitoring-app
+          docker run -d --name flask-monitor -p 5000:5000 flask-monitoring-app
+          # attendre que l'appli démarre
           sleep 5
           bash test_app.sh
+          # nettoyer
+          docker logs flask-monitor || true
+          docker rm -f flask-monitor || true
 
   deploy:
     runs-on: ubuntu-latest
@@ -34,13 +40,4 @@ jobs:
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-
-      - name: Installation de Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io docker-compose
-
-      - name: Déploiement de la stack Monitoring
-        run: |
-          cd advanced-monitoring
-          docker-compose up -d
+      # Ajoute ici tes étapes de déploiement (scp, ssh, kubectl, etc.)
