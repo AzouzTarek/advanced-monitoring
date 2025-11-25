@@ -4,10 +4,12 @@
     src: ../../advanced-monitoring/
     dest: /opt/advanced-monitoring/
     owner: vagrant
+    group: vagrant
     mode: '0755'
 
-- name: Lancer la stack Docker
-  shell: |
-    cd /opt/advanced-monitoring
-    docker-compose up -d
+- name: Lancer la stack Docker de monitoring
+  shell: docker-compose up -d
+  args:
+    chdir: /opt/advanced-monitoring
+  become: yes
 
