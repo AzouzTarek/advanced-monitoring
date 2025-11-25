@@ -16,7 +16,7 @@ def index():
     # Simulation d’un traitement aléatoire
     time.sleep(random.uniform(0.1, 0.5))
     REQUEST_LATENCY.observe(time.time() - start_time)
-    return jsonify(message="Hello DevOps!"), 200
+    return jsonify(message="Hello Master DevOps!"), 200
 
 @app.route('/metrics')
 def metrics():

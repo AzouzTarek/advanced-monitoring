@@ -1,83 +1,42 @@
 
-# Créer le répertoire des clés
-- name: Créer le répertoire pour les clés APT
-  ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
+---
+- name: Supprimer l'ancien dépôt Docker s'il existe
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
 
-# Installer les dépendances (via apt-get, sans update_cache initial)
-- name: Installer les dépendances nécessaires (via apt-get)
-  ansible.builtin.apt:
+- name: Installer les dépendances
+  apt:
     name:
+      - apt-transport-https
       - ca-certificates
       - curl
-      - gnupg
-      - lsb-release
       - software-properties-common
     state: present
-    force_apt_get: yes
+    update_cache: yes
 
-# Ajouter la clé GPG officielle de Docker
 - name: Ajouter la clé GPG officielle de Docker
-  ansible.builtin.shell: |
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  args:
-    creates: /etc/apt/keyrings/docker.gpg
-
-- name: Définir les permissions de la clé GPG
-  ansible.builtin.file:
-    path: /etc/apt/keyrings/docker.gpg
-    mode: '0644'
-
-# Déterminer l’architecture Debian pour Docker
-- name: Déterminer l’architecture Debian pour Docker
-  ansible.builtin.set_fact:
-    docker_arch: "{{ 'arm64' if ansible_architecture in ['aarch64','arm64'] else 'amd64' }}"
-
-# Ajouter le dépôt Docker stable pour la VM (utilise focal dans ta VM)
-- name: Ajouter le dépôt Docker stable
-  ansible.builtin.apt_repository:
-    repo: "deb [arch={{ docker_arch }} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
     state: present
-    filename: docker
 
-# Mettre à jour le cache APT via apt-get (sans 'warn')
-- name: Mettre à jour le cache APT via apt-get
-  ansible.builtin.command: apt-get update -y
-  register: apt_update
-  changed_when: false
+- name: Ajouter le dépôt Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
 
-# Installer Docker et composants via apt-get
-- name: Installer Docker CE, CLI, containerd et docker-compose-plugin
-  ansible.builtin.apt:
+- name: Installer Docker Engine
+  apt:
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
-      - docker-compose-plugin
     state: present
-    force_apt_get: yes
+    update_cache: yes
 
-# Ajouter l'utilisateur vagrant au groupe docker
-- name: Ajouter l'utilisateur vagrant au groupe docker
-  ansible.builtin.user:
-    name: vagrant
-    groups: docker
-    append: yes
-
-# Activer et démarrer Docker
-- name: Activer et démarrer le service Docker
-  ansible.builtin.systemd:
-    name: docker
-    state: started
-    enabled: yes
-    daemon_reload: yes
-
-# Vérifier Docker
-- name: Vérifier que Docker répond
-  ansible.builtin.command: docker version
-  register: docker_check
-  failed_when: docker_check.rc != 0
-  changed_when: false
+- name: Installer Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+    timeout: 180
