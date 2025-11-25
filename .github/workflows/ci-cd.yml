@@ -39,5 +39,4 @@ jobs:
 
       - name: Déploiement de la stack Monitoring
         run: |
-          cd advanced-monitoring
           docker compose up -d
